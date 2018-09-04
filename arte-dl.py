@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
-import sys
-import re
-import requests
-import urllib.parse
 import json
+import sys
+import urllib.parse
 
-def download_error(url):
-    print("Error: download error (" + url + ")", file=sys.stderr)
+import requests
+
+
+def download_error(url_used):
+    print("Error: download error (" + url_used + ")", file=sys.stderr)
     exit(1)
 
 
@@ -31,6 +32,7 @@ def get_json_url(video_page):
         print("Error: cannot extract video metadatas URL from webpage", file=sys.stderr)
         exit(1)
 
+
 def get_json_infos(json_url):
     try:
         req = requests.get(json_url)
@@ -51,30 +53,30 @@ def get_language_versions(items):
     return ret_versions
 
 
-def select_number(max, input_type):
+def select_number(max_choice, input_type):
     selected_value = None
     while selected_value is None:
         str_value = input(input_type + ' choice: ')
         try:
             int_value = int(str_value)
-            if int_value > 0 and int_value < max:
+            if 0 < int_value < max_choice:
                 selected_value = int_value
         except:
             continue
     return selected_value
 
 
-def download_video(url, filename):
+def download_video(video_url, filename):
     print('Downloading video...')
     try:
-        req = requests.get(url, stream=True)
+        req = requests.get(video_url, stream=True)
         if req.status_code != 200:
             download_error(url)
         total_length = int(req.headers.get('content-length'))
         print('Size: ' + sizeof_fmt(total_length))
         downloaded_length = 0
         with open(filename, 'wb') as f:
-            for chunk in req.iter_content(chunk_size=1024): 
+            for chunk in req.iter_content(chunk_size=1024):
                 if chunk:
                     f.write(chunk)
                     downloaded_length += len(chunk)
@@ -86,12 +88,12 @@ def download_video(url, filename):
 
 
 def get_safe_filename(title):
-    keepcharacters = (' ','.','_')
-    return "".join(c for c in title if c.isalnum() or c in keepcharacters).rstrip()
+    keep_characters = (' ', '.', '_')
+    return "".join(c for c in title if c.isalnum() or c in keep_characters).rstrip()
 
 
 def sizeof_fmt(num, suffix='B'):
-    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
         if abs(num) < 1024.0:
             return "%3.1f%s%s" % (num, unit, suffix)
         num /= 1024.0
@@ -115,21 +117,22 @@ if __name__ == "__main__":
 
     # Language selection
     languages = get_language_versions(items_list)
-    iter = 1
+    iteration = 1
     for l in languages:
-        print(str(iter) + ' - ' + l)
-        iter += 1
-    selected_language = languages[select_number(iter, 'Language') - 1]
+        print(str(iteration) + ' - ' + l)
+        iteration += 1
+    selected_language = languages[select_number(iteration, 'Language') - 1]
     print(selected_language)
 
     # Build final items list for selection (deduplicate due to same URL sent multiple times for some files)
-    items_with_duplicates = [i for i in items_list if i['versionLibelle'] == selected_language and i['mediaType'] == 'mp4']
+    items_with_duplicates = [i for i in items_list if
+                             i['versionLibelle'] == selected_language and i['mediaType'] == 'mp4']
     items_with_language = []
     for i in items_with_duplicates:
         already_exist = next((x for x in items_with_language if x['url'] == i['url']), None)
         if already_exist is None:
             items_with_language.append(i)
-    items_with_language.sort(key=lambda x: x['width'], reverse=True) # sort by resolution
+    items_with_language.sort(key=lambda x: x['width'], reverse=True)  # sort by resolution
 
     # Select version
     video_iter = 1
