@@ -19,7 +19,7 @@ def get_json_url(video_page):
             download_error(video_page)
         page_content = req.content.decode("utf-8")
         req.close()
-    except:
+    except:  # noqa: E722
         download_error(video_page)
 
     # Find JSON URL
@@ -28,8 +28,9 @@ def get_json_url(video_page):
         end = '&'
         result = (page_content.split(start))[1].split(end)[0]
         return urllib.parse.unquote(result)
-    except:
-        print("Error: cannot extract video metadatas URL from webpage", file=sys.stderr)
+    except:  # noqa: E722
+        print("Error: cannot extract video metadatas URL from webpage",
+              file=sys.stderr)
         exit(1)
 
 
@@ -41,7 +42,7 @@ def get_json_infos(json_url):
         json_content = json.loads(req.content.decode("utf-8"))
         req.close()
         return json_content['videoJsonPlayer']
-    except:
+    except:  # noqa: E722
         download_error(json_url)
 
 
@@ -61,7 +62,7 @@ def select_number(max_choice, input_type):
             int_value = int(str_value)
             if 0 < int_value < max_choice:
                 selected_value = int_value
-        except:
+        except:  # noqa: E722
             continue
     return selected_value
 
@@ -71,7 +72,7 @@ def download_video(video_url, filename):
     try:
         req = requests.get(video_url, stream=True)
         if req.status_code != 200:
-            download_error(url)
+            download_error(video_url)
         total_length = int(req.headers.get('content-length'))
         print('Size: ' + sizeof_fmt(total_length))
         downloaded_length = 0
@@ -80,16 +81,18 @@ def download_video(video_url, filename):
                 if chunk:
                     f.write(chunk)
                     downloaded_length += len(chunk)
-                    print('Progress: ' + str(int((downloaded_length / total_length) * 100)) + '%', end='\r')
+                    print('Progress: ' +
+                          str(int((downloaded_length / total_length) * 100)) +
+                          '%', end='\r')
 
         req.close()
-    except:
-        download_error(url)
+    except:  # noqa: E722
+        download_error(video_url)
 
 
 def get_safe_filename(title):
-    keep_characters = (' ', '.', '_')
-    return "".join(c for c in title if c.isalnum() or c in keep_characters).rstrip()
+    keep_chars = (' ', '.', '_')
+    return "".join(c for c in title if c.isalnum() or c in keep_chars).rstrip()
 
 
 def sizeof_fmt(num, suffix='B'):
@@ -100,7 +103,7 @@ def sizeof_fmt(num, suffix='B'):
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) < 2:
         print("Error: no URL provided", file=sys.stderr)
         exit(1)
@@ -124,21 +127,34 @@ if __name__ == "__main__":
     selected_language = languages[select_number(iteration, 'Language') - 1]
     print(selected_language)
 
-    # Build final items list for selection (deduplicate due to same URL sent multiple times for some files)
+    # Build final items list for selection
+    # (deduplicate due to same URL sent multiple times for some files)
     items_with_duplicates = [i for i in items_list if
-                             i['versionLibelle'] == selected_language and i['mediaType'] == 'mp4']
+                             i['versionLibelle'] == selected_language and
+                             i['mediaType'] == 'mp4']
     items_with_language = []
     for i in items_with_duplicates:
-        already_exist = next((x for x in items_with_language if x['url'] == i['url']), None)
+        already_exist = next(
+            (x for x in items_with_language if x['url'] == i['url']),
+            None)
         if already_exist is None:
             items_with_language.append(i)
-    items_with_language.sort(key=lambda x: x['width'], reverse=True)  # sort by resolution
+    items_with_language.sort(key=lambda x: x['width'],
+                             reverse=True)  # sort by resolution
 
     # Select version
     video_iter = 1
     for v in items_with_language:
-        print(str(video_iter) + ' - ' + str(v['width']) + 'x' + str(v['height']))
+        print(str(video_iter) + ' - ' +
+              str(v['width']) +
+              'x' + str(v['height']))
         video_iter += 1
-    selected_video = items_with_language[select_number(video_iter, 'Version') - 1]
+    selected_video = items_with_language[select_number(video_iter,
+                                                       'Version') - 1]
 
-    download_video(selected_video['url'], get_safe_filename(json['VTI']) + '.mp4')
+    download_video(selected_video['url'],
+                   get_safe_filename(json['VTI']) + '.mp4')
+
+
+if __name__ == "__main__":
+    main()
