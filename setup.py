@@ -25,7 +25,7 @@ class RunTests(Command):
 
     def run(self):
         """Run all tests!"""
-        errno = call(['py.test', '--cov=arte_dl', 'tests/'])
+        errno = call(['py.test', '--junitxml=test-results.xml', '--cov=arte_dl', 'tests/'])
         raise SystemExit(errno)
 
 

@@ -25,3 +25,13 @@ jobs:
   - script: |
       python setup.py lint
     displayName: 'Run lint'
+
+  - script: |
+      python setup.py test
+    displayName: 'Run tests'
+
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFiles: 'test-*.xml'
+      testRunTitle: 'Publish test results for Python $(python.version)'

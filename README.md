@@ -1,6 +1,6 @@
 # arte-dl
 
-[![Build Status](https://corenting.visualstudio.com/arte-dl/_apis/build/status/corenting.arte-dl?branchName=master)](https://corenting.visualstudio.com/arte-dl/_build/latest?definitionId=1&branchName=master)
+[![Build Status](https://corenting.visualstudio.com/arte_dl/_apis/build/status/corenting.arte_dl?branchName=master)](https://corenting.visualstudio.com/arte_dl/_build/latest?definitionId=2&branchName=master)
 
 CLI video downloader for [arte.tv](https://www.arte.tv) in Python3 with language and resolution selection.
 
